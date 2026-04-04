@@ -1,42 +1,32 @@
-# sv
+<p align="center">
+  <img src="static/spothole-logo.svg" alt="spothole" height="64" />
+</p>
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+<p align="center">
+  Report potholes, litter, graffiti, and other urban issues on an interactive map.
+</p>
 
-## Creating a project
+---
 
-If you're seeing this, you've probably already done this step. Congrats!
+Spothole is a citizen reporting tool built with SvelteKit and Supabase. Snap a photo, drop a pin, and let your city know what needs fixing.
 
-```sh
-# create a new project
-npx sv create my-app
-```
+## Features
 
-To recreate this project with the same configuration:
+- Interactive map with clustered markers and category legend
+- Photo-based reporting with NSFW detection
+- Geolocation-aware location picker
+- Multilingual (EN / FR / NL) with SSR locale support
+- User profiles with report history
 
-```sh
-# recreate this project
-npx sv@0.14.0 create --template minimal --types ts --no-install .
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+## Getting started
 
 ```sh
+npm install
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
 ```
 
-## Building
+## Tech stack
 
-To create a production version of your app:
-
-```sh
-npm run build
-```
-
-You can preview the production build with `npm run preview`.
-
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+- **Frontend:** SvelteKit, MapLibre GL, Paraglide (i18n)
+- **Backend:** Supabase (auth, database, storage)
+- **Logo:** Generated with [pixie](https://github.com/kwakzalf/pixie)
