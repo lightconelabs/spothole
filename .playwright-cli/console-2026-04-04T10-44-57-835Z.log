@@ -2,3 +2,4 @@
 [   41691ms] [WARNING] Geolocation support is not available so the GeolocateControl will be disabled. @ http://localhost:5173/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=f0ae001a:3323
 [   89903ms] [WARNING] Geolocation support is not available so the GeolocateControl will be disabled. @ http://localhost:5173/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=f0ae001a:3323
 [  181428ms] [WARNING] Geolocation support is not available so the GeolocateControl will be disabled. @ http://localhost:5173/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=f0ae001a:3323
+[ 6706347ms] [WARNING] Geolocation support is not available so the GeolocateControl will be disabled. @ http://localhost:5173/node_modules/@sveltejs/kit/src/runtime/client/client.js?v=683871ee:3323

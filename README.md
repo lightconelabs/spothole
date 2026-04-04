@@ -1,10 +1,6 @@
-<p align="center">
-  <img src="static/spothole-logo.svg" alt="spothole" height="64" />
-</p>
+![spothole](static/spothole-logo.svg)
 
-<p align="center">
-  Report potholes, litter, graffiti, and other urban issues on an interactive map.
-</p>
+Report potholes, litter, graffiti, and other urban issues on an interactive map.
 
 ---
 
