@@ -4,7 +4,7 @@ Report potholes, litter, graffiti, and other urban issues on an interactive map.
 
 ---
 
-Spothole is a citizen reporting tool built with SvelteKit and Supabase. Snap a photo, drop a pin, and let your city know what needs fixing.
+Spothole is a citizen reporting tool. Snap a photo, drop a pin, and let your city know what needs fixing.
 
 ## Features
 
