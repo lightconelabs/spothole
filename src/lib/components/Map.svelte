@@ -453,6 +453,10 @@
   }
 
   /* Hover popup styles — MapLibre popups use global CSS */
+  :global(.report-popup) {
+    pointer-events: none;
+  }
+
   :global(.report-popup .maplibregl-popup-content) {
     padding: 0;
     border-radius: var(--radius-md);
