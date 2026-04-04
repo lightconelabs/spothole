@@ -20,7 +20,7 @@
   let error: string = $state('');
   let success: boolean = $state(false);
 
-  let fileInput: HTMLInputElement;
+  let fileInput: HTMLInputElement = $state(null!);
 
   async function handlePhoto(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -113,7 +113,7 @@
 
     <div class="form">
       <section>
-        <label class="section-label">{m.report_photo()}</label>
+        <label class="section-label" for="photo-input">{m.report_photo()}</label>
         {#if photoPreview}
           <div class="photo-preview">
             <img src={photoPreview} alt="Preview" />
@@ -130,6 +130,7 @@
           </button>
         {/if}
         <input
+          id="photo-input"
           bind:this={fileInput}
           type="file"
           accept="image/*"
@@ -143,12 +144,12 @@
       </section>
 
       <section>
-        <label class="section-label">{m.report_category()}</label>
+        <label class="section-label" for="category-picker">{m.report_category()}</label>
         <CategoryPicker bind:value={category} />
       </section>
 
       <section>
-        <label class="section-label">{m.report_location()}</label>
+        <label class="section-label" for="location-picker">{m.report_location()}</label>
         <LocationPicker bind:latitude bind:longitude bind:address />
       </section>
 

@@ -5,7 +5,7 @@
   import 'maplibre-gl/dist/maplibre-gl.css';
 
   let { data } = $props();
-  const report = data.report;
+  const report = $derived(data.report);
 
   let mapContainer: HTMLDivElement;
   let map: maplibregl.Map;
