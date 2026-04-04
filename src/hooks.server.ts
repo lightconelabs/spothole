@@ -1,9 +1,15 @@
 import { createServerClient } from '@supabase/ssr';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
-import { paraglideMiddleware } from '$lib/paraglide/server.js';
+import { setLocale, isLocale } from '$lib/paraglide/runtime.js';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
+  // Set locale from cookie before rendering so SSR matches client language
+  const localeCookie = event.cookies.get('PARAGLIDE_LOCALE');
+  if (localeCookie && isLocale(localeCookie)) {
+    setLocale(localeCookie);
+  }
+
   event.locals.supabase = createServerClient(PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY, {
     cookies: {
       getAll: () => event.cookies.getAll(),
@@ -23,11 +29,9 @@ export const handle: Handle = async ({ event, resolve }) => {
     return { session, user };
   };
 
-  return paraglideMiddleware(event.request, ({ request }) => {
-    return resolve(event, {
-      filterSerializedResponseHeaders(name) {
-        return name === 'content-range' || name === 'x-supabase-api-version';
-      }
-    });
+  return resolve(event, {
+    filterSerializedResponseHeaders(name) {
+      return name === 'content-range' || name === 'x-supabase-api-version';
+    }
   });
 };
