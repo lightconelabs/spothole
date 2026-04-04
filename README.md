@@ -1,4 +1,4 @@
-![spothole](static/spothole-logo.svg)
+![spothole](static/spothole-logo.png)
 
 Report potholes, litter, graffiti, and other urban issues on an interactive map.
 
