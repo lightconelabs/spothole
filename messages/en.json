@@ -5,6 +5,7 @@
   "map_loading": "Loading map...",
   "map_locate_me": "My location",
   "map_no_gps": "Location access denied. Tap the map to set your position.",
+  "map_search_placeholder": "Search for an address...",
   "category_pothole": "Pothole",
   "category_litter": "Litter",
   "category_garbage_bin": "Overflowing bin",

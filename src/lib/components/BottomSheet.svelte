@@ -10,6 +10,7 @@
     photo_url: string;
     status: string;
     description: string;
+    address: string | null;
     created_at: string;
   };
 

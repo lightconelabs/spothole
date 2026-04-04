@@ -1,0 +1,64 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]: Spothole
+    - generic [ref=e6]:
+      - button "EN" [ref=e7] [cursor=pointer]
+      - button "FR" [ref=e8] [cursor=pointer]
+      - button "NL" [ref=e9] [cursor=pointer]
+  - main [ref=e10]:
+    - generic [ref=e11]:
+      - generic [ref=e12]:
+        - link "← Back" [ref=e13] [cursor=pointer]:
+          - /url: /
+        - heading "Report an issue" [level=1] [ref=e14]
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - generic [ref=e17]: Take or upload a photo
+          - generic [ref=e51]:
+            - img "Preview" [ref=e52]
+            - button "Change photo" [ref=e53] [cursor=pointer]
+        - generic [ref=e24]:
+          - generic [ref=e25]: What's the issue?
+          - generic [ref=e26]:
+            - button "🕳️ Pothole" [active] [ref=e27] [cursor=pointer]:
+              - generic [ref=e28]: 🕳️
+              - generic [ref=e29]: Pothole
+            - button "🗑️ Litter" [ref=e30] [cursor=pointer]:
+              - generic [ref=e31]: 🗑️
+              - generic [ref=e32]: Litter
+            - button "♻️ Overflowing bin" [ref=e33] [cursor=pointer]:
+              - generic [ref=e34]: ♻️
+              - generic [ref=e35]: Overflowing bin
+            - button "🎨 Graffiti" [ref=e36] [cursor=pointer]:
+              - generic [ref=e37]: 🎨
+              - generic [ref=e38]: Graffiti
+            - button "⚠️ Other" [ref=e39] [cursor=pointer]:
+              - generic [ref=e40]: ⚠️
+              - generic [ref=e41]: Other
+        - generic [ref=e42]:
+          - generic [ref=e43]: Where is it?
+          - generic [ref=e44]:
+            - generic [ref=e45]:
+              - generic:
+                - region "Map" [ref=e54]
+                - button "Map marker" [ref=e55]:
+                  - img [ref=e56]
+              - group [ref=e74]:
+                - generic "Toggle attribution" [ref=e75] [cursor=pointer]
+                - generic [ref=e76]:
+                  - link "MapLibre" [ref=e77] [cursor=pointer]:
+                    - /url: https://maplibre.org/
+                  - text: "| ©"
+                  - link "CARTO" [ref=e78] [cursor=pointer]:
+                    - /url: https://carto.com/about-carto/
+                  - text: ", ©"
+                  - link "OpenStreetMap" [ref=e79] [cursor=pointer]:
+                    - /url: http://www.openstreetmap.org/about/
+                  - text: contributors
+            - paragraph [ref=e46]: Drag the pin to adjust
+            - paragraph [ref=e80]: Quartier du Centre - Centrumwijk, Pentagon, Brussels, Brussels-Capital, 1000, Belgium
+        - generic [ref=e47]:
+          - generic [ref=e48]: Description (optional)
+          - textbox "Description (optional)" [ref=e49]:
+            - /placeholder: Add details about the issue...
+        - button "Submit report" [ref=e50] [cursor=pointer]

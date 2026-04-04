@@ -5,6 +5,7 @@
   "map_loading": "Chargement de la carte...",
   "map_locate_me": "Ma position",
   "map_no_gps": "Accès à la localisation refusé. Touchez la carte pour définir votre position.",
+  "map_search_placeholder": "Rechercher une adresse...",
   "category_pothole": "Nid-de-poule",
   "category_litter": "Déchets",
   "category_garbage_bin": "Poubelle pleine",

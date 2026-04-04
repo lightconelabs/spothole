@@ -28,11 +28,21 @@
 
 <div class="app">
   <header class="top-bar">
-    <span class="logo">{m.app_name()}</span>
-    <div class="lang-picker">
-      <button class:active={currentLocale === 'en'} onclick={() => switchLocale('en')}>EN</button>
-      <button class:active={currentLocale === 'fr'} onclick={() => switchLocale('fr')}>FR</button>
-      <button class:active={currentLocale === 'nl'} onclick={() => switchLocale('nl')}>NL</button>
+    <a href="/" class="logo">
+      <img src="/spothole-logo.svg" alt={m.app_name()} class="logo-img" />
+    </a>
+    <div class="top-bar-right">
+      <div class="lang-picker">
+        <button class:active={currentLocale === 'en'} onclick={() => switchLocale('en')}>EN</button>
+        <button class:active={currentLocale === 'fr'} onclick={() => switchLocale('fr')}>FR</button>
+        <button class:active={currentLocale === 'nl'} onclick={() => switchLocale('nl')}>NL</button>
+      </div>
+      <a href="/profile" class="profile-link" aria-label={m.profile_title()}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="8" r="4" />
+          <path d="M20 21a8 8 0 1 0-16 0" />
+        </svg>
+      </a>
     </div>
   </header>
   <main class="content">
@@ -59,8 +69,35 @@
   }
 
   .logo {
-    font-size: 1.25rem;
-    font-weight: 700;
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+
+  .logo-img {
+    height: 28px;
+    width: auto;
+  }
+
+  .top-bar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .profile-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    color: var(--color-gray-500);
+    transition: background 0.15s, color 0.15s;
+  }
+
+  .profile-link:hover {
+    background: var(--color-gray-100);
     color: var(--color-primary);
   }
 
@@ -86,7 +123,7 @@
 
   .content {
     flex: 1;
-    overflow: hidden;
+    overflow: auto;
     position: relative;
   }
 </style>

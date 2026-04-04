@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr';
 import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
+import { paraglideMiddleware } from '$lib/paraglide/server.js';
 import type { Handle } from '@sveltejs/kit';
 
 export const handle: Handle = async ({ event, resolve }) => {
@@ -22,9 +23,11 @@ export const handle: Handle = async ({ event, resolve }) => {
     return { session, user };
   };
 
-  return resolve(event, {
-    filterSerializedResponseHeaders(name) {
-      return name === 'content-range' || name === 'x-supabase-api-version';
-    }
+  return paraglideMiddleware(event.request, ({ request }) => {
+    return resolve(event, {
+      filterSerializedResponseHeaders(name) {
+        return name === 'content-range' || name === 'x-supabase-api-version';
+      }
+    });
   });
 };

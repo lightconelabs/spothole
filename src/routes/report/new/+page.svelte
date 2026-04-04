@@ -74,6 +74,7 @@
         description: description.trim() || null,
         latitude,
         longitude,
+        address: address || null,
         photo_url: urlData.publicUrl,
         user_id: (await supabase.auth.getUser()).data.user?.id
       });
@@ -181,11 +182,9 @@
 
 <style>
   .page {
-    padding: 16px;
+    padding: 16px 16px 32px;
     max-width: 600px;
     margin: 0 auto;
-    height: 100%;
-    overflow-y: auto;
   }
 
   .form-header {

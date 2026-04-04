@@ -13,17 +13,18 @@
   let mapContainer: HTMLDivElement;
   let map: maplibregl.Map;
   let marker: maplibregl.Marker;
+  let mapReady = $state(false);
 
-  onMount(() => {
+  function initMap(center: [number, number], zoom: number) {
     map = new maplibregl.Map({
       container: mapContainer,
       style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
-      center: [longitude, latitude],
-      zoom: 15
+      center,
+      zoom
     });
 
     marker = new maplibregl.Marker({ draggable: true, color: '#2563eb' })
-      .setLngLat([longitude, latitude])
+      .setLngLat(center)
       .addTo(map);
 
     marker.on('dragend', () => {
@@ -40,18 +41,25 @@
       reverseGeocode(latitude, longitude);
     });
 
-    navigator.geolocation?.getCurrentPosition(
-      (pos) => {
-        latitude = pos.coords.latitude;
-        longitude = pos.coords.longitude;
-        marker.setLngLat([longitude, latitude]);
-        map.flyTo({ center: [longitude, latitude], zoom: 16 });
-        reverseGeocode(latitude, longitude);
-      },
-      () => {
-        reverseGeocode(latitude, longitude);
-      }
-    );
+    reverseGeocode(center[1], center[0]);
+    mapReady = true;
+  }
+
+  onMount(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          latitude = pos.coords.latitude;
+          longitude = pos.coords.longitude;
+          initMap([longitude, latitude], 16);
+        },
+        () => {
+          initMap([longitude, latitude], 15);
+        }
+      );
+    } else {
+      initMap([longitude, latitude], 15);
+    }
   });
 
   onDestroy(() => {
@@ -73,8 +81,16 @@
 </script>
 
 <div class="location-picker">
-  <div class="map-container" bind:this={mapContainer}></div>
-  <p class="hint">{m.report_location_hint()}</p>
+  <div class="map-container" bind:this={mapContainer}>
+    {#if !mapReady}
+      <div class="map-loading">
+        <span>{m.report_location_hint()}</span>
+      </div>
+    {/if}
+  </div>
+  {#if mapReady}
+    <p class="hint">{m.report_location_hint()}</p>
+  {/if}
   {#if address}
     <p class="address">{address}</p>
   {/if}
@@ -92,6 +108,19 @@
     height: 250px;
     border-radius: var(--radius-md);
     overflow: hidden;
+    position: relative;
+  }
+
+  .map-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--color-gray-100);
+    color: var(--color-gray-500);
+    font-size: 0.85rem;
+    z-index: 1;
   }
 
   .hint {

@@ -1,0 +1,16 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]: Spothole
+      - generic [ref=e6]:
+        - button "EN" [ref=e7] [cursor=pointer]
+        - button "FR" [ref=e8] [cursor=pointer]
+        - button "NL" [ref=e9] [cursor=pointer]
+    - main [ref=e10]:
+      - generic [ref=e82]:
+        - generic [ref=e83]: ✓
+        - heading "Report submitted!" [level=2] [ref=e84]
+        - paragraph [ref=e85]: Thank you for helping improve your neighborhood.
+        - link "View on map" [ref=e86] [cursor=pointer]:
+          - /url: /
+  - generic [ref=e81]: Report an issue | Spothole
