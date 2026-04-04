@@ -1,34 +1,11 @@
 <script lang="ts">
   import * as m from '$lib/paraglide/messages.js';
   import { fly } from 'svelte/transition';
-
-  type Report = {
-    id: string;
-    category: string;
-    latitude: number;
-    longitude: number;
-    photo_url: string;
-    status: string;
-    description: string;
-    address: string | null;
-    created_at: string;
-  };
+  import { onMount, onDestroy } from 'svelte';
+  import type { Report } from '$lib/types';
+  import { categoryLabels, statusLabels, STATUS_COLORS } from '$lib/labels';
 
   let { report, onClose = () => {} }: { report: Report | null; onClose?: () => void } = $props();
-
-  const categoryLabels: Record<string, () => string> = {
-    pothole: m.category_pothole,
-    litter: m.category_litter,
-    garbage_bin: m.category_garbage_bin,
-    graffiti: m.category_graffiti,
-    other: m.category_other
-  };
-
-  const statusLabels: Record<string, () => string> = {
-    pending: m.status_pending,
-    acknowledged: m.status_acknowledged,
-    resolved: m.status_resolved
-  };
 
   function timeAgo(date: string): string {
     const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
@@ -41,19 +18,27 @@
     return m.time_days({ count: days });
   }
 
-  const STATUS_COLORS: Record<string, string> = {
-    pending: 'var(--color-warning)',
-    acknowledged: 'var(--color-primary)',
-    resolved: 'var(--color-success)'
-  };
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape' && report) {
+      onClose();
+    }
+  }
+
+  onMount(() => {
+    document.addEventListener('keydown', handleKeydown);
+  });
+
+  onDestroy(() => {
+    document.removeEventListener('keydown', handleKeydown);
+  });
 </script>
 
 {#if report}
-  <div class="overlay" role="button" tabindex="-1" onclick={onClose} onkeydown={(e) => e.key === 'Escape' && onClose()}></div>
+  <div class="overlay" role="presentation" onclick={onClose}></div>
   <div class="sheet" transition:fly={{ y: 300, duration: 250 }}>
-    <button class="close-btn" onclick={onClose}>&times;</button>
+    <button class="close-btn" onclick={onClose} aria-label={m.common_close()}>&times;</button>
     <div class="sheet-content">
-      <img src={report.photo_url} alt={categoryLabels[report.category]?.()} class="photo" />
+      <img src={report.photo_url} alt={categoryLabels[report.category]?.()} class="photo" loading="lazy" />
       <div class="info">
         <div class="header-row">
           <span class="category" style="color: var(--color-{report.category})">{categoryLabels[report.category]?.()}</span>

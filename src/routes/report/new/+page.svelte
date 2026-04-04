@@ -1,15 +1,18 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
+  import { enhance } from '$app/forms';
   import * as m from '$lib/paraglide/messages.js';
   import CategoryPicker from '$lib/components/CategoryPicker.svelte';
   import LocationPicker from '$lib/components/LocationPicker.svelte';
   import { checkImage } from '$lib/nsfw';
   import { compressImage, createImageElement } from '$lib/image';
+  import { onDestroy } from 'svelte';
 
   let { data } = $props();
 
   let photoFile: File | null = $state(null);
   let photoPreview: string = $state('');
+  let photoUrl: string = $state('');
   let category: string = $state('');
   let latitude: number = $state(50.8503);
   let longitude: number = $state(4.3517);
@@ -21,6 +24,17 @@
   let success: boolean = $state(false);
 
   let fileInput: HTMLInputElement = $state(null!);
+
+  function revokePreview() {
+    if (photoPreview) {
+      URL.revokeObjectURL(photoPreview);
+      photoPreview = '';
+    }
+  }
+
+  onDestroy(() => {
+    revokePreview();
+  });
 
   async function handlePhoto(e: Event) {
     const input = e.target as HTMLInputElement;
@@ -39,6 +53,7 @@
     }
 
     photoFile = file;
+    revokePreview();
     photoPreview = URL.createObjectURL(file);
   }
 
@@ -69,17 +84,27 @@
         .from('report-photos')
         .getPublicUrl(fileName);
 
-      const { error: insertError } = await supabase.from('reports').insert({
-        category,
-        description: description.trim() || null,
-        latitude,
-        longitude,
-        address: address || null,
-        photo_url: urlData.publicUrl,
-        user_id: (await supabase.auth.getUser()).data.user?.id
+      photoUrl = urlData.publicUrl;
+
+      // Submit via form action for server-side validation
+      const formData = new FormData();
+      formData.set('category', category);
+      formData.set('description', description.trim());
+      formData.set('latitude', String(latitude));
+      formData.set('longitude', String(longitude));
+      formData.set('address', address);
+      formData.set('photo_url', photoUrl);
+
+      const response = await fetch('?/default', {
+        method: 'POST',
+        body: formData
       });
 
-      if (insertError) throw insertError;
+      const result = await response.json();
+
+      if (result.type === 'failure') {
+        throw new Error(result.data?.error || 'Failed to create report');
+      }
 
       success = true;
     } catch (e) {

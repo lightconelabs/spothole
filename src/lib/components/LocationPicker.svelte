@@ -1,6 +1,7 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import * as m from '$lib/paraglide/messages.js';
+  import { getLocale } from '$lib/paraglide/runtime.js';
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -68,9 +69,10 @@
 
   async function reverseGeocode(lat: number, lng: number) {
     try {
+      const locale = getLocale();
       const res = await fetch(
         `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`,
-        { headers: { 'Accept-Language': 'en' } }
+        { headers: { 'Accept-Language': locale } }
       );
       const data = await res.json();
       address = data.display_name || '';

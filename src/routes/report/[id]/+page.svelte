@@ -1,6 +1,7 @@
 <script lang="ts">
   import * as m from '$lib/paraglide/messages.js';
   import { onMount, onDestroy } from 'svelte';
+  import { categoryLabels, statusLabels, STATUS_COLORS } from '$lib/labels';
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
 
@@ -9,26 +10,6 @@
 
   let mapContainer: HTMLDivElement;
   let map: maplibregl.Map;
-
-  const categoryLabels: Record<string, () => string> = {
-    pothole: m.category_pothole,
-    litter: m.category_litter,
-    garbage_bin: m.category_garbage_bin,
-    graffiti: m.category_graffiti,
-    other: m.category_other
-  };
-
-  const statusLabels: Record<string, () => string> = {
-    pending: m.status_pending,
-    acknowledged: m.status_acknowledged,
-    resolved: m.status_resolved
-  };
-
-  const STATUS_COLORS: Record<string, string> = {
-    pending: 'var(--color-warning)',
-    acknowledged: 'var(--color-primary)',
-    resolved: 'var(--color-success)'
-  };
 
   onMount(() => {
     map = new maplibregl.Map({
@@ -63,7 +44,7 @@
 <div class="page">
   <a href="/" class="back">&larr; {m.common_back()}</a>
 
-  <img src={report.photo_url} alt={categoryLabels[report.category]?.()} class="hero-photo" />
+  <img src={report.photo_url} alt={categoryLabels[report.category]?.()} class="hero-photo" loading="lazy" />
 
   <div class="details">
     <div class="header-row">
