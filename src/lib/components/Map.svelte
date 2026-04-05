@@ -243,6 +243,9 @@
 
     // Click marker to open bottom sheet
     map.on('click', 'unclustered-point', (e) => {
+      hoverPopup?.remove();
+      hoverPopup = null;
+
       const feature = e.features?.[0];
       if (feature) {
         const report = reports.find((r) => r.id === feature.properties?.id);
@@ -250,9 +253,11 @@
       }
     });
 
-    // Hover popup with thumbnail
+    // Hover popup with thumbnail (skip on touch devices to avoid flash before bottom sheet)
     map.on('mouseenter', 'unclustered-point', (e) => {
       map.getCanvas().style.cursor = 'pointer';
+
+      if ('ontouchstart' in window) return;
 
       const feature = e.features?.[0];
       if (!feature) return;
