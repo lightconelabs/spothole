@@ -12,7 +12,6 @@
 
   let photoFile: File | null = $state(null);
   let photoPreview: string = $state('');
-  let photoUrl: string = $state('');
   let category: string = $state('');
   let latitude: number = $state(50.8503);
   let longitude: number = $state(4.3517);
@@ -70,9 +69,11 @@
     try {
       const { supabase } = data;
 
+      // Ensure we have an authenticated session for RLS
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        await supabase.auth.signInAnonymously();
+        const { error: authError } = await supabase.auth.signInAnonymously();
+        if (authError) throw new Error(`Auth failed: ${authError.message}`);
       }
 
       progress = 10;
@@ -86,8 +87,8 @@
 
       // Use XMLHttpRequest for upload progress tracking
       const uploadUrl = `${PUBLIC_SUPABASE_URL}/storage/v1/object/report-photos/${fileName}`;
-      const sessionData = await supabase.auth.getSession();
-      const accessToken = sessionData.data.session?.access_token;
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
 
       await new Promise<void>((resolve, reject) => {
         const xhr = new XMLHttpRequest();
@@ -107,11 +108,11 @@
           if (xhr.status >= 200 && xhr.status < 300) {
             resolve();
           } else {
-            reject(new Error(`Upload failed: ${xhr.statusText}`));
+            reject(new Error(`Upload failed (${xhr.status}): ${xhr.responseText || xhr.statusText}`));
           }
         };
 
-        xhr.onerror = () => reject(new Error('Upload failed'));
+        xhr.onerror = () => reject(new Error('Upload failed: network error'));
         xhr.send(compressed);
       });
 
@@ -121,40 +122,34 @@
         .from('report-photos')
         .getPublicUrl(fileName);
 
-      photoUrl = urlData.publicUrl;
+      const publicUrl = urlData.publicUrl;
 
       progress = 90;
       progressLabel = m.report_progress_saving();
 
-      // Submit via form action for server-side validation
-      const formData = new FormData();
-      formData.set('category', category);
-      formData.set('description', description.trim());
-      formData.set('latitude', String(latitude));
-      formData.set('longitude', String(longitude));
-      formData.set('address', address);
-      formData.set('photo_url', photoUrl);
+      // Insert directly via the client Supabase instance which already
+      // has the authenticated session — avoids server cookie sync issues
+      const { data: user } = await supabase.auth.getUser();
 
-      const response = await fetch('?/default', {
-        method: 'POST',
-        body: formData,
-        headers: { 'x-sveltekit-action': 'true' }
+      const { error: insertError } = await supabase.from('reports').insert({
+        category,
+        description: description.trim() || null,
+        latitude,
+        longitude,
+        address: address || null,
+        photo_url: publicUrl,
+        user_id: user.user?.id ?? null
       });
 
-      const result = await response.json();
-
-      // SvelteKit wraps action results; handle both formats
-      const actionResult = result.type !== undefined ? result : result.data?.[0];
-
-      if (actionResult?.type === 'failure') {
-        throw new Error(actionResult.data?.error || 'Failed to create report');
+      if (insertError) {
+        throw new Error(`Save failed: ${insertError.message}`);
       }
 
       progress = 100;
       success = true;
-    } catch (e) {
-      error = m.common_error();
-      console.error(e);
+    } catch (e: any) {
+      error = e?.message || m.common_error();
+      console.error('Submission error:', e);
     } finally {
       submitting = false;
     }
