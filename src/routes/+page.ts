@@ -1,4 +1,3 @@
-import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ parent }) => {
@@ -12,7 +11,6 @@ export const load: PageLoad = async ({ parent }) => {
 
   if (fetchError) {
     console.error('Failed to load reports:', fetchError);
-    throw error(500, 'Failed to load reports');
   }
 
   return { reports: reports ?? [] };
