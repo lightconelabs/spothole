@@ -1,22 +1,9 @@
 <script lang="ts">
   import * as m from '$lib/paraglide/messages.js';
   import { invalidate } from '$app/navigation';
+  import { categoryLabels, statusLabels } from '$lib/labels';
 
   let { data } = $props();
-
-  const categoryLabels: Record<string, () => string> = {
-    pothole: m.category_pothole,
-    litter: m.category_litter,
-    garbage_bin: m.category_garbage_bin,
-    graffiti: m.category_graffiti,
-    other: m.category_other
-  };
-
-  const statusLabels: Record<string, () => string> = {
-    pending: m.status_pending,
-    acknowledged: m.status_acknowledged,
-    resolved: m.status_resolved
-  };
 
   let email: string = $state('');
   let password: string = $state('');
@@ -71,7 +58,7 @@
       <div class="report-list">
         {#each data.reports as report}
           <a href="/report/{report.id}" class="report-card">
-            <img src={report.photo_url} alt="" class="thumb" />
+            <img src={report.photo_url} alt={categoryLabels[report.category]?.()} class="thumb" loading="lazy" />
             <div class="report-info">
               <span class="cat">{categoryLabels[report.category]?.()}</span>
               <span class="stat">{statusLabels[report.status]?.()}</span>

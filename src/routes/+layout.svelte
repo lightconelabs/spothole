@@ -20,6 +20,7 @@
   function switchLocale(lang: string) {
     if (isLocale(lang)) {
       setLocale(lang);
+      document.cookie = `PARAGLIDE_LOCALE=${lang};path=/;max-age=${60 * 60 * 24 * 365};SameSite=Lax`;
     }
   }
 

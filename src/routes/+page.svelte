@@ -1,21 +1,10 @@
 <script lang="ts">
   import * as m from '$lib/paraglide/messages.js';
+  import type { Report } from '$lib/types';
   import Map from '$lib/components/Map.svelte';
   import BottomSheet from '$lib/components/BottomSheet.svelte';
 
   let { data } = $props();
-
-  type Report = {
-    id: string;
-    category: string;
-    latitude: number;
-    longitude: number;
-    photo_url: string;
-    status: string;
-    description: string;
-    address: string | null;
-    created_at: string;
-  };
 
   let selectedReport: Report | null = $state(null);
 </script>

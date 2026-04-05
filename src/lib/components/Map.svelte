@@ -1,20 +1,10 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import * as m from '$lib/paraglide/messages.js';
+  import { getLocale } from '$lib/paraglide/runtime.js';
+  import type { Report } from '$lib/types';
   import maplibregl from 'maplibre-gl';
   import 'maplibre-gl/dist/maplibre-gl.css';
-
-  type Report = {
-    id: string;
-    category: string;
-    latitude: number;
-    longitude: number;
-    photo_url: string;
-    status: string;
-    description: string;
-    address: string | null;
-    created_at: string;
-  };
 
   let { reports = [], onMarkerClick = (_r: Report) => {} }: { reports: Report[]; onMarkerClick?: (report: Report) => void } = $props();
 
@@ -24,6 +14,7 @@
   let searchQuery: string = $state('');
   let searchResults: Array<{ display_name: string; lat: string; lon: string }> = $state([]);
   let searchTimeout: ReturnType<typeof setTimeout>;
+  let searchFocused: boolean = $state(false);
 
   // Category filter state
   let activeFilters: Record<string, boolean> = $state({
@@ -50,6 +41,15 @@
   const DEFAULT_CENTER: [number, number] = [4.3517, 50.8503];
   const DEFAULT_ZOOM = 13;
 
+  function escapeHtml(str: string): string {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   function getSavedView(): { center: [number, number]; zoom: number } {
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
@@ -69,23 +69,36 @@
 
   function toggleFilter(categoryId: string) {
     activeFilters[categoryId] = !activeFilters[categoryId];
-    updateFilters();
+    updateSourceData();
   }
 
-  function updateFilters() {
-    if (!map || !map.getLayer('unclustered-point')) return;
+  function getFilteredReports(reps: Report[]): Report[] {
+    return reps.filter(r => activeFilters[r.category] !== false);
+  }
 
-    const activeCats = Object.entries(activeFilters)
-      .filter(([_, active]) => active)
-      .map(([id]) => id);
+  function updateSourceData() {
+    if (!map || !map.getSource('reports')) return;
+    const source = map.getSource('reports') as maplibregl.GeoJSONSource;
+    source.setData(reportsToGeoJSON(getFilteredReports(reports)));
+  }
 
-    const filterExpr: maplibregl.FilterSpecification = [
-      'all',
-      ['!', ['has', 'point_count']],
-      ['in', ['get', 'category'], ['literal', activeCats]]
-    ];
-
-    map.setFilter('unclustered-point', filterExpr);
+  function reportsToGeoJSON(reps: Report[]): GeoJSON.FeatureCollection {
+    return {
+      type: 'FeatureCollection',
+      features: reps.map((r) => ({
+        type: 'Feature',
+        geometry: { type: 'Point', coordinates: [r.longitude, r.latitude] },
+        properties: {
+          id: r.id,
+          category: r.category,
+          status: r.status,
+          color: CATEGORY_COLORS[r.category] || '#6b7280',
+          photo_url: r.photo_url,
+          description: r.description || '',
+          address: r.address || ''
+        }
+      }))
+    };
   }
 
   async function handleSearch(query: string) {
@@ -97,9 +110,10 @@
     clearTimeout(searchTimeout);
     searchTimeout = setTimeout(async () => {
       try {
+        const locale = getLocale();
         const res = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`,
-          { headers: { 'Accept-Language': 'en' } }
+          { headers: { 'Accept-Language': locale } }
         );
         searchResults = await res.json();
       } catch {
@@ -113,6 +127,13 @@
     const lng = parseFloat(result.lon);
     map.flyTo({ center: [lng, lat], zoom: 15 });
     searchQuery = result.display_name;
+    searchResults = [];
+  }
+
+  function handleSearchBlur(e: FocusEvent) {
+    const related = e.relatedTarget as HTMLElement | null;
+    if (related?.closest('.search-results')) return;
+    searchFocused = false;
     searchResults = [];
   }
 
@@ -138,12 +159,13 @@
     map.on('moveend', saveView);
 
     // Save location from geolocate
-    geolocate.on('geolocate', (e: any) => {
+    geolocate.on('geolocate', () => {
       saveView();
     });
 
     map.on('load', () => {
-      addReportsToMap(reports);
+      setupMapLayers(reports);
+      setupMapInteractions();
       // Only auto-geolocate if no saved view
       if (!localStorage.getItem(STORAGE_KEY)) {
         geolocate.trigger();
@@ -156,36 +178,14 @@
     map?.remove();
   });
 
-  function addReportsToMap(reps: Report[]) {
+  function setupMapLayers(reps: Report[]) {
     if (!map || !map.loaded()) return;
 
-    if (map.getSource('reports')) {
-      map.removeLayer('clusters');
-      map.removeLayer('cluster-count');
-      map.removeLayer('unclustered-point');
-      map.removeSource('reports');
-    }
-
-    const geojson: GeoJSON.FeatureCollection = {
-      type: 'FeatureCollection',
-      features: reps.map((r) => ({
-        type: 'Feature',
-        geometry: { type: 'Point', coordinates: [r.longitude, r.latitude] },
-        properties: {
-          id: r.id,
-          category: r.category,
-          status: r.status,
-          color: CATEGORY_COLORS[r.category] || '#6b7280',
-          photo_url: r.photo_url,
-          description: r.description || '',
-          address: r.address || ''
-        }
-      }))
-    };
+    const filtered = getFilteredReports(reps);
 
     map.addSource('reports', {
       type: 'geojson',
-      data: geojson,
+      data: reportsToGeoJSON(filtered),
       cluster: true,
       clusterMaxZoom: 14,
       clusterRadius: 50
@@ -229,10 +229,9 @@
         'circle-stroke-color': '#ffffff'
       }
     });
+  }
 
-    // Apply active filters
-    updateFilters();
-
+  function setupMapInteractions() {
     // Click cluster to zoom
     map.on('click', 'clusters', async (e) => {
       const features = map.queryRenderedFeatures(e.point, { layers: ['clusters'] });
@@ -246,7 +245,7 @@
     map.on('click', 'unclustered-point', (e) => {
       const feature = e.features?.[0];
       if (feature) {
-        const report = reps.find((r) => r.id === feature.properties?.id);
+        const report = reports.find((r) => r.id === feature.properties?.id);
         if (report) onMarkerClick(report);
       }
     });
@@ -263,7 +262,6 @@
       const categoryLabel = CATEGORIES.find(c => c.id === props.category)?.label() ?? props.category;
 
       hoverPopup?.remove();
-      // Show short address: take first 2 parts (street + number area) from the full display_name
       const shortAddress = props.address
         ? props.address.split(',').slice(0, 2).map((s: string) => s.trim()).join(', ')
         : '';
@@ -277,10 +275,10 @@
         .setLngLat(coords)
         .setHTML(`
           <div class="popup-link">
-            <img src="${props.photo_url}" alt="${categoryLabel}" />
+            <img src="${escapeHtml(props.photo_url)}" alt="${escapeHtml(categoryLabel)}" />
             <div class="popup-info">
-              <strong style="color: ${CATEGORY_COLORS[props.category] || '#6b7280'}">${categoryLabel}</strong>
-              ${shortAddress ? `<span class="popup-address">${shortAddress}</span>` : ''}
+              <strong style="color: ${escapeHtml(CATEGORY_COLORS[props.category] || '#6b7280')}">${escapeHtml(categoryLabel)}</strong>
+              ${shortAddress ? `<span class="popup-address">${escapeHtml(shortAddress)}</span>` : ''}
             </div>
           </div>
         `)
@@ -306,8 +304,11 @@
   }
 
   $effect(() => {
-    if (map?.loaded()) {
-      addReportsToMap(reports);
+    if (map?.loaded() && map.getSource('reports')) {
+      updateSourceData();
+    } else if (map?.loaded() && !map.getSource('reports')) {
+      setupMapLayers(reports);
+      setupMapInteractions();
     }
   });
 </script>
@@ -319,10 +320,10 @@
       placeholder={m.map_search_placeholder()}
       bind:value={searchQuery}
       oninput={() => handleSearch(searchQuery)}
-      onfocus={() => handleSearch(searchQuery)}
-      onblur={() => setTimeout(() => searchResults = [], 200)}
+      onfocus={() => { searchFocused = true; handleSearch(searchQuery); }}
+      onblur={handleSearchBlur}
     />
-    {#if searchResults.length > 0}
+    {#if searchResults.length > 0 && searchFocused}
       <ul class="search-results">
         {#each searchResults as result}
           <li>
