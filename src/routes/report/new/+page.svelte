@@ -1,12 +1,11 @@
 <script lang="ts">
-  import { goto } from '$app/navigation';
-  import { enhance } from '$app/forms';
   import * as m from '$lib/paraglide/messages.js';
   import CategoryPicker from '$lib/components/CategoryPicker.svelte';
   import LocationPicker from '$lib/components/LocationPicker.svelte';
   import { checkImage } from '$lib/nsfw';
   import { compressImage, createImageElement } from '$lib/image';
   import { onDestroy } from 'svelte';
+  import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
   let { data } = $props();
 
@@ -22,6 +21,8 @@
   let nsfwError: string = $state('');
   let error: string = $state('');
   let success: boolean = $state(false);
+  let progress: number = $state(0);
+  let progressLabel: string = $state('');
 
   let fileInput: HTMLInputElement = $state(null!);
 
@@ -62,6 +63,8 @@
 
     submitting = true;
     error = '';
+    progress = 0;
+    progressLabel = m.report_progress_compressing();
 
     try {
       const { supabase } = data;
@@ -71,20 +74,56 @@
         await supabase.auth.signInAnonymously();
       }
 
+      progress = 10;
+      progressLabel = m.report_progress_compressing();
+
       const compressed = await compressImage(photoFile);
       const fileName = `${Date.now()}-${crypto.randomUUID()}.jpg`;
 
-      const { error: uploadError } = await supabase.storage
-        .from('report-photos')
-        .upload(fileName, compressed, { contentType: 'image/jpeg' });
+      progress = 30;
+      progressLabel = m.report_progress_uploading();
 
-      if (uploadError) throw uploadError;
+      // Use XMLHttpRequest for upload progress tracking
+      const uploadUrl = `${PUBLIC_SUPABASE_URL}/storage/v1/object/report-photos/${fileName}`;
+      const sessionData = await supabase.auth.getSession();
+      const accessToken = sessionData.data.session?.access_token;
+
+      await new Promise<void>((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', uploadUrl);
+        xhr.setRequestHeader('Authorization', `Bearer ${accessToken || PUBLIC_SUPABASE_ANON_KEY}`);
+        xhr.setRequestHeader('Content-Type', 'image/jpeg');
+        xhr.setRequestHeader('x-upsert', 'false');
+
+        xhr.upload.onprogress = (e) => {
+          if (e.lengthComputable) {
+            // Map upload progress to 30-85% of overall progress
+            progress = 30 + Math.round((e.loaded / e.total) * 55);
+          }
+        };
+
+        xhr.onload = () => {
+          if (xhr.status >= 200 && xhr.status < 300) {
+            resolve();
+          } else {
+            reject(new Error(`Upload failed: ${xhr.statusText}`));
+          }
+        };
+
+        xhr.onerror = () => reject(new Error('Upload failed'));
+        xhr.send(compressed);
+      });
+
+      progress = 85;
 
       const { data: urlData } = supabase.storage
         .from('report-photos')
         .getPublicUrl(fileName);
 
       photoUrl = urlData.publicUrl;
+
+      progress = 90;
+      progressLabel = m.report_progress_saving();
 
       // Submit via form action for server-side validation
       const formData = new FormData();
@@ -97,15 +136,20 @@
 
       const response = await fetch('?/default', {
         method: 'POST',
-        body: formData
+        body: formData,
+        headers: { 'x-sveltekit-action': 'true' }
       });
 
       const result = await response.json();
 
-      if (result.type === 'failure') {
-        throw new Error(result.data?.error || 'Failed to create report');
+      // SvelteKit wraps action results; handle both formats
+      const actionResult = result.type !== undefined ? result : result.data?.[0];
+
+      if (actionResult?.type === 'failure') {
+        throw new Error(actionResult.data?.error || 'Failed to create report');
       }
 
+      progress = 100;
       success = true;
     } catch (e) {
       error = m.common_error();
@@ -192,6 +236,15 @@
 
       {#if error}
         <p class="error-text">{error}</p>
+      {/if}
+
+      {#if submitting}
+        <div class="progress-container">
+          <div class="progress-bar">
+            <div class="progress-fill" style="width: {progress}%"></div>
+          </div>
+          <p class="progress-label">{progressLabel}</p>
+        </div>
       {/if}
 
       <button
@@ -310,6 +363,33 @@
   .submit-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+
+  .progress-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--color-gray-200);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--color-primary);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  .progress-label {
+    font-size: 0.8rem;
+    color: var(--color-gray-500);
+    text-align: center;
   }
 
   .error-text {
