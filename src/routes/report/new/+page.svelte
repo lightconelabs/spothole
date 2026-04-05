@@ -1,5 +1,6 @@
 <script lang="ts">
   import * as m from '$lib/paraglide/messages.js';
+  import { goto, invalidateAll } from '$app/navigation';
   import CategoryPicker from '$lib/components/CategoryPicker.svelte';
   import LocationPicker from '$lib/components/LocationPicker.svelte';
   import { checkImage } from '$lib/nsfw';
@@ -170,7 +171,7 @@
       <div class="check">&#10003;</div>
       <h2>{m.report_success()}</h2>
       <p>{m.report_success_message()}</p>
-      <a href="/" class="btn">{m.report_view_on_map()}</a>
+      <button class="btn" onclick={() => { invalidateAll().then(() => goto('/')); }}>{m.report_view_on_map()}</button>
       {#if !data.session}
         <a href="/profile" class="btn btn-secondary">{m.report_sign_up_prompt()}</a>
       {/if}
