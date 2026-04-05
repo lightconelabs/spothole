@@ -2,7 +2,7 @@ import { error } from '@sveltejs/kit';
 import type { PageLoad } from './$types';
 
 export const load: PageLoad = async ({ params, parent }) => {
-  const { supabase } = await parent();
+  const { supabase, session } = await parent();
 
   const { data: report, error: fetchError } = await supabase
     .from('reports')
@@ -18,5 +18,28 @@ export const load: PageLoad = async ({ params, parent }) => {
 
   if (!report) throw error(404, 'Report not found');
 
-  return { report };
+  // Fetch confirmation count for this report
+  const { count: confirmationCount } = await supabase
+    .from('resolution_confirmations')
+    .select('*', { count: 'exact', head: true })
+    .eq('report_id', params.id);
+
+  // Check if the current user has already confirmed
+  let userHasConfirmed = false;
+  if (session?.user) {
+    const { data: existing } = await supabase
+      .from('resolution_confirmations')
+      .select('id')
+      .eq('report_id', params.id)
+      .eq('user_id', session.user.id)
+      .maybeSingle();
+
+    userHasConfirmed = !!existing;
+  }
+
+  return {
+    report,
+    confirmationCount: confirmationCount ?? 0,
+    userHasConfirmed
+  };
 };

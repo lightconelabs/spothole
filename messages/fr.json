@@ -53,5 +53,11 @@
   "time_just_now": "à l'instant",
   "time_minutes": "{count} min",
   "time_hours": "{count}h",
-  "time_days": "{count}j"
+  "time_days": "{count}j",
+  "resolve_confirm": "Confirmer la résolution",
+  "resolve_confirmed": "Vous avez confirmé que c'est résolu",
+  "resolve_count": "{count} sur {threshold} confirmations",
+  "resolve_sign_in_prompt": "Connectez-vous pour confirmer que ce problème est résolu",
+  "resolve_already_resolved": "Ce problème a été résolu",
+  "resolve_error": "Impossible d'enregistrer votre confirmation. Veuillez réessayer."
 }

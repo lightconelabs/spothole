@@ -53,5 +53,11 @@
   "time_just_now": "just now",
   "time_minutes": "{count} min",
   "time_hours": "{count}h",
-  "time_days": "{count}d"
+  "time_days": "{count}d",
+  "resolve_confirm": "Confirm resolved",
+  "resolve_confirmed": "You confirmed this is resolved",
+  "resolve_count": "{count} of {threshold} confirmations",
+  "resolve_sign_in_prompt": "Sign in to confirm this issue is resolved",
+  "resolve_already_resolved": "This issue has been resolved",
+  "resolve_error": "Could not record your confirmation. Please try again."
 }

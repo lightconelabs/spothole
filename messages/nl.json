@@ -53,5 +53,11 @@
   "time_just_now": "zojuist",
   "time_minutes": "{count} min",
   "time_hours": "{count}u",
-  "time_days": "{count}d"
+  "time_days": "{count}d",
+  "resolve_confirm": "Bevestig opgelost",
+  "resolve_confirmed": "Je hebt bevestigd dat dit opgelost is",
+  "resolve_count": "{count} van {threshold} bevestigingen",
+  "resolve_sign_in_prompt": "Meld je aan om te bevestigen dat dit probleem opgelost is",
+  "resolve_already_resolved": "Dit probleem is opgelost",
+  "resolve_error": "Kon je bevestiging niet opslaan. Probeer opnieuw."
 }
