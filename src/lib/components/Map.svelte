@@ -274,15 +274,23 @@
       })
         .setLngLat(coords)
         .setHTML(`
-          <a href="/report/${escapeHtml(props.id)}" class="popup-link">
+          <div class="popup-link">
             <img src="${escapeHtml(props.photo_url)}" alt="${escapeHtml(categoryLabel)}" />
             <div class="popup-info">
               <strong style="color: ${escapeHtml(CATEGORY_COLORS[props.category] || '#6b7280')}">${escapeHtml(categoryLabel)}</strong>
               ${shortAddress ? `<span class="popup-address">${escapeHtml(shortAddress)}</span>` : ''}
             </div>
-          </a>
+          </div>
         `)
         .addTo(map);
+
+      // Click on the popup should open the same bottom sheet as clicking the marker
+      hoverPopup.getElement().addEventListener('click', () => {
+        const report = reps.find((r) => r.id === props.id);
+        if (report) onMarkerClick(report);
+        hoverPopup?.remove();
+        hoverPopup = null;
+      });
     });
 
     map.on('mouseleave', 'unclustered-point', () => {
@@ -454,6 +462,10 @@
   }
 
   /* Hover popup styles — MapLibre popups use global CSS */
+  :global(.report-popup) {
+    cursor: pointer;
+  }
+
   :global(.report-popup .maplibregl-popup-content) {
     padding: 0;
     border-radius: var(--radius-md);
