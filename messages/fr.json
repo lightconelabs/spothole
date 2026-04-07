@@ -24,6 +24,7 @@
   "report_description_placeholder": "Ajoutez des détails sur le problème...",
   "report_submit": "Envoyer le signalement",
   "report_submitting": "Envoi en cours...",
+  "report_progress_checking_photo": "Vérification de la photo...",
   "report_progress_compressing": "Compression de la photo...",
   "report_progress_uploading": "Envoi de la photo...",
   "report_progress_saving": "Enregistrement du signalement...",

@@ -4,7 +4,7 @@
   import CategoryPicker from '$lib/components/CategoryPicker.svelte';
   import LocationPicker from '$lib/components/LocationPicker.svelte';
   import { checkImage } from '$lib/nsfw';
-  import { compressImage, createImageElement } from '$lib/image';
+  import { compressImage, createThumbnail } from '$lib/image';
   import { onDestroy } from 'svelte';
   import { PUBLIC_SUPABASE_URL, PUBLIC_SUPABASE_ANON_KEY } from '$env/static/public';
 
@@ -19,6 +19,7 @@
   let description: string = $state('');
   let submitting: boolean = $state(false);
   let nsfwError: string = $state('');
+  let checkingPhoto: boolean = $state(false);
   let error: string = $state('');
   let success: boolean = $state(false);
   let progress: number = $state(0);
@@ -43,19 +44,24 @@
     if (!file) return;
 
     nsfwError = '';
+    checkingPhoto = true;
 
-    const img = await createImageElement(file);
-    const result = await checkImage(img);
+    try {
+      const thumbnail = await createThumbnail(file);
+      const result = await checkImage(thumbnail, data.supabase);
 
-    if (!result.safe) {
-      nsfwError = m.nsfw_blocked();
-      input.value = '';
-      return;
+      if (!result.safe) {
+        nsfwError = m.nsfw_blocked();
+        input.value = '';
+        return;
+      }
+
+      photoFile = file;
+      revokePreview();
+      photoPreview = URL.createObjectURL(file);
+    } finally {
+      checkingPhoto = false;
     }
-
-    photoFile = file;
-    revokePreview();
-    photoPreview = URL.createObjectURL(file);
   }
 
   async function handleSubmit() {
@@ -204,6 +210,9 @@
           onchange={handlePhoto}
           hidden
         />
+        {#if checkingPhoto}
+          <p class="checking-text">{m.report_progress_checking_photo()}</p>
+        {/if}
         {#if nsfwError}
           <p class="error-text">{nsfwError}</p>
         {/if}
@@ -246,7 +255,7 @@
       <button
         class="submit-btn"
         onclick={handleSubmit}
-        disabled={!photoFile || !category || submitting}
+        disabled={!photoFile || !category || submitting || checkingPhoto}
       >
         {submitting ? m.report_submitting() : m.report_submit()}
       </button>
@@ -386,6 +395,11 @@
     font-size: 0.8rem;
     color: var(--color-gray-500);
     text-align: center;
+  }
+
+  .checking-text {
+    color: var(--color-gray-500);
+    font-size: 0.85rem;
   }
 
   .error-text {
